@@ -1,0 +1,195 @@
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import { useAuth } from '../../contexts/AuthContext'
+import { useNavigate, Link } from 'react-router-dom'
+import { validateEmail } from '../../utils/validation'
+
+function RegisterForm() {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const { register } = useAuth()
+  const navigate = useNavigate()
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+    
+    if (!formData.username) {
+      newErrors.username = 'Le nom d\'utilisateur est requis'
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Le nom d\'utilisateur doit contenir au moins 3 caractères'
+    }
+    
+    if (!formData.email) {
+      newErrors.email = 'L\'email est requis'
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Format d\'email invalide'
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Le mot de passe est requis'
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères'
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Veuillez confirmer le mot de passe'
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validateForm()) return
+    
+    setLoading(true)
+    const result = await register({
+      username: formData.username,
+      email: formData.email,
+      password: formData.password
+    })
+    
+    if (result.success) {
+      navigate('/dashboard')
+    } else {
+      setErrors({ submit: result.error })
+    }
+    setLoading(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md mx-auto"
+    >
+      <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">Inscription</h2>
+          <p className="text-amber-200">Rejoignez l'aventure dès maintenant !</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">
+              Nom d'utilisateur
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+              placeholder="Votre nom d'utilisateur"
+            />
+            {errors.username && (
+              <p className="text-red-400 text-sm mt-1">{errors.username}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+              placeholder="votre@email.com"
+            />
+            {errors.email && (
+              <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">
+              Mot de passe
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+              placeholder="••••••••"
+            />
+            {errors.password && (
+              <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">
+              Confirmer le mot de passe
+            </label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+              placeholder="••••••••"
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
+            )}
+          </div>
+
+          {errors.submit && (
+            <p className="text-red-400 text-center">{errors.submit}</p>
+          )}
+
+          <motion.button
+            type="submit"
+            disabled={loading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-3 bg-gradient-to-r from-amber-700 to-amber-800 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-amber-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Inscription...' : 'S\'inscrire'}
+          </motion.button>
+        </form>
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-300">
+            Déjà un compte ?{' '}
+            <Link to="/login" className="text-amber-300 hover:text-white font-medium">
+              Se connecter
+            </Link>
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export default RegisterForm
