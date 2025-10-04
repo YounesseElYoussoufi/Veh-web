@@ -30,7 +30,7 @@ Développée avec **Three.js**, cette plateforme propose une interface intuitive
 | **JavaScript (ES6)** | Logique applicative et interaction utilisateur |
 | **GLTF / OBJ** | Format des modèles 3D utilisés (si applicable) |
 | **Vite / Webpack** | Compilation et gestion du projet web |
-| **GitHub Pages / Vercel** | Déploiement de la version web (optionnel) |
+
 
 ---
 
